@@ -2,4 +2,4 @@
 
 ## Opis projektu
 
-Zadanie polegało na rozwiązaniu problemu 5 filozofów.
+Zadanie polegało na rozwiązaniu problemu jedzących filozofów.

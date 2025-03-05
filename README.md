@@ -1,7 +1,9 @@
 # Systemy operacyjne 2 - projekt
 
+Autor: [Artur Kręgiel](https://github.com/arkregiel)
+
 Prowadzący: [mgr inż. Damian Raczkowski](https://github.com/DocentSzachista)
 
-## Projekty
+## Zadania projektowe
 
 - [Projekt 1](./Projekt1/)
