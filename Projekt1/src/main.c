@@ -4,31 +4,56 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+// representation of philosopher's current state
 typedef enum {
     EATING,
     THINKING,
     STARVING
 } PhilosopherState;
 
+/* Funcion prototypes */
+
+// deleting dynamically allocated object from memory
 void delete(void *object);
+
+// routine for a single philosopher's thread
 void* philosopherRoutine(void *arg);
+
+// function reperesenting eating
 void eat(int philosopherID);
+
+/*
+checking philosopher's state. If philosopher is hungry and philosophers
+on his left and right aren't eating - philosopher starts eating
+*/
 void checkPhilosopher(int philosopherID);
+
+// pickup chopsticks
 void takeChopsticks(int philosopherID);
+
+// realease chopsticks
 void releaseChopsticks(int philosopherID);
 
 
 /* global variables */
+
+// mutex for securing critical section
 pthread_mutex_t mutexChopsticks;
+
+// variable for waking up philosophers
 pthread_cond_t *condPhilosophers;
 
+// number of philosophers (threads)
 int philosophersCount;
+
+// states of philosophers
 PhilosopherState *philosophers;
 
+/* main function */
 int main(int argc, char *argv[]) {
 
     if (argc < 2) {
-        printf("Usage: %s <philosophersCount", argv[0]);
+        printf("Usage: %s <philosophers-count>", argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -39,19 +64,24 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    // memory allocation and initialization of variables
     pthread_t *philosopherThreads = (pthread_t *)malloc(philosophersCount * sizeof(pthread_t));
     philosophers = (PhilosopherState *)malloc(philosophersCount * sizeof(PhilosopherState));
     condPhilosophers = (pthread_cond_t *)malloc(philosophersCount * sizeof(pthread_cond_t));
 
     pthread_mutex_init(&mutexChopsticks, NULL);
     
+    // IDs of philosopher threads
     int* philosophersIDs = (int *)malloc(philosophersCount * sizeof(int));
     for (int i = 0; i < philosophersCount; i++) {
         philosophersIDs[i] = i;
     }
 
+    srand(time(NULL));
+
+    // starting threads
     for (int i = 0; i < philosophersCount; i++) {
-        printf("[*] Tworzenie filozofa %d...\n", i);
+        printf("[*] Creating philosopher %d...\n", i);
         fflush(stdout);
         pthread_cond_init(&condPhilosophers[i], NULL);
         if (pthread_create(&philosopherThreads[i], NULL, &philosopherRoutine, &philosophersIDs[i]) != 0) {
@@ -60,6 +90,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // cleaning
+
+    // waiting for threads to finish
     for (int i = 0; i < philosophersCount; i++) {
         pthread_join(philosopherThreads[i], NULL);
     }
@@ -70,6 +103,7 @@ int main(int argc, char *argv[]) {
         pthread_cond_destroy(&condPhilosophers[i]);
     }
 
+    // releasing heap memory
     delete(philosophersIDs);
     delete(philosopherThreads);
     delete(philosophers);
@@ -91,8 +125,10 @@ void* philosopherRoutine(void *arg) {
     fflush(stdout);
 
     while (1) {
-
-        printf("[ %d ] Próbuję wziąć sztućce...\n", philosopherID);
+        printf("[+ %d +] Thinking...\n", philosopherID);
+        fflush(stdout);
+        sleep(rand() % 2 + 1);
+        printf("[ %d ] Trying to pickup chopsticks...\n", philosopherID);
         eat(philosopherID);
         fflush(stdout);
     }
@@ -102,56 +138,57 @@ void* philosopherRoutine(void *arg) {
 void eat(int philosopherID) {
 
     takeChopsticks(philosopherID);
-    printf("[ %d ] Jem...\n", philosopherID);
+    printf("[+ %d +] Eating...\n", philosopherID);
     fflush(stdout);
-    sleep(3);
+    sleep(rand() % 3 + 1);
 
-    printf("[ %d ] Skończyłem jeść, odkładam sztućce\n", philosopherID);
+    printf("[ %d ] Finished eating, releasing chopsticks...\n", philosopherID);
     fflush(stdout);
 
     releaseChopsticks(philosopherID);
 
-    printf("[ %d ] Odłożyłem sztućce\n", philosopherID);
+    printf("[ %d ] Chopsticks released\n", philosopherID);
     fflush(stdout);
 }
 
 void checkPhilosopher(int philosopherID) {
-    printf("[+] Sprawdzanie filozofa %d\n", philosopherID);
+    printf("[+] Testing state of philosopher %d\n", philosopherID);
     fflush(stdout);
     if (philosophers[philosopherID] == STARVING &&
-        philosophers[(philosopherID + philosophersCount - 1) % philosophersCount] != EATING &&
-        philosophers[(philosopherID + 1) % philosophersCount] != EATING) {
+        philosophers[(philosopherID + philosophersCount - 1) % philosophersCount] != EATING &&  // philosopher on the left
+        philosophers[(philosopherID + 1) % philosophersCount] != EATING) {                      // philosopher on the right
         
-        philosophers[philosopherID] = EATING;
-        pthread_cond_signal(&condPhilosophers[philosopherID]);
-        printf("[+] Filozof %d może jeść\n", philosopherID);
+        philosophers[philosopherID] = EATING;   // pickup chopsticks
+        pthread_cond_signal(&condPhilosophers[philosopherID]);  // wake up philosopher's thread
+        printf("[+] Philosopher %d can eat\n", philosopherID);
         fflush(stdout);
     }
 }
 
 void takeChopsticks(int philosopherID) {
-    pthread_mutex_lock(&mutexChopsticks);
+
+    pthread_mutex_lock(&mutexChopsticks);       // beginning of critical section
 
     philosophers[philosopherID] = STARVING;
     checkPhilosopher(philosopherID);
 
+    // wait for opportunity to eat
     while (philosophers[philosopherID] != EATING) {
-        // printf("[ %d ] Czekam na sztućce...\n", philosopherID);
+        printf("[+ %d +] Waiting...\n", philosopherID);
         fflush(stdout);
         pthread_cond_wait(&condPhilosophers[philosopherID], &mutexChopsticks);
     }
 
-    pthread_mutex_unlock(&mutexChopsticks);
+    pthread_mutex_unlock(&mutexChopsticks);     // end of critical section
 }
 
 void releaseChopsticks(int philosopherID) {
-    pthread_mutex_lock(&mutexChopsticks);
+
+    pthread_mutex_lock(&mutexChopsticks);       // beginning of critical section
 
     philosophers[philosopherID] = THINKING;
-    checkPhilosopher((philosopherID + philosophersCount - 1) % philosophersCount);
-    checkPhilosopher((philosopherID + 1) % philosophersCount);
-    printf("[ %d ] Zwolniłem sztućce\n", philosopherID);
-    fflush(stdout);
+    checkPhilosopher((philosopherID + philosophersCount - 1) % philosophersCount);  // wake up philosopher on the left
+    checkPhilosopher((philosopherID + 1) % philosophersCount);                      // wake up philosopher on the right
 
-    pthread_mutex_unlock(&mutexChopsticks);
+    pthread_mutex_unlock(&mutexChopsticks);     // end of critical section
 }
