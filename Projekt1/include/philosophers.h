@@ -15,6 +15,9 @@ typedef enum {
 // deleting dynamically allocated object from memory
 void delete(void *object);
 
+// SIGINT signal handler
+void shutdown(int signum);
+
 // routine for a single philosopher's thread
 void* philosopherRoutine(void *arg);
 

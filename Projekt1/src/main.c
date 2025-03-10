@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <signal.h>
 #include "philosophers.h"
 
 
@@ -14,11 +15,18 @@ pthread_mutex_t mutexChopsticks;
 // variable for waking up philosophers
 pthread_cond_t *condPhilosophers;
 
+// philosophers threads
+pthread_t *philosopherThreads;
+
 // number of philosophers (threads)
 int philosophersCount;
 
 // states of philosophers
 PhilosopherState *philosophers;
+
+// condition for philosophers to keep running.
+// Set to 0 after SIGINT to break out of the loop
+int alive = 1;
 
 /* main function */
 int main(int argc, char *argv[]) {
@@ -35,8 +43,10 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    signal(SIGINT, &shutdown);
+
     // memory allocation and initialization of variables
-    pthread_t *philosopherThreads = (pthread_t *)malloc(philosophersCount * sizeof(pthread_t));
+    philosopherThreads = (pthread_t *)malloc(philosophersCount * sizeof(pthread_t));
     philosophers = (PhilosopherState *)malloc(philosophersCount * sizeof(PhilosopherState));
     condPhilosophers = (pthread_cond_t *)malloc(philosophersCount * sizeof(pthread_cond_t));
 
@@ -61,12 +71,14 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // cleaning
-
     // waiting for threads to finish
     for (int i = 0; i < philosophersCount; i++) {
         pthread_join(philosopherThreads[i], NULL);
     }
+
+    // cleanup
+
+    printf("[*] Cleaning...\n");
 
     pthread_mutex_destroy(&mutexChopsticks);
 
@@ -80,6 +92,8 @@ int main(int argc, char *argv[]) {
     delete(philosophers);
     delete(condPhilosophers);
 
+    printf("Goodbye");
+
     return EXIT_SUCCESS;
 }
 
@@ -89,14 +103,20 @@ void delete(void *object) {
     }
 }
 
+void shutdown(int signum) {
+    printf("[*] Singal received, waiting for threads to finish...\n");
+    fflush(stdout);
+    alive = 0;
+}
+
 void* philosopherRoutine(void *arg) {
     int philosopherID = *((int *)arg);
 
     printf("[ %d ] Start...\n", philosopherID);
     fflush(stdout);
 
-    while (1) {
-        printf("[+ %d +] Thinking...\n", philosopherID);
+    while (alive) {
+        printf("[ %d ] Thinking...\n", philosopherID);
         fflush(stdout);
         sleep(rand() % 2 + 1);
         #ifdef VERBOSE
@@ -106,13 +126,14 @@ void* philosopherRoutine(void *arg) {
         eat(philosopherID);
     }
 
+    return NULL;
 }
 
 void eat(int philosopherID) {
 
     takeChopsticks(philosopherID);
 
-    printf("[+ %d +] Eating...\n", philosopherID);
+    printf("[ %d ] Eating...\n", philosopherID);
     fflush(stdout);
 
     sleep(rand() % 3 + 1);
@@ -159,7 +180,7 @@ void takeChopsticks(int philosopherID) {
 
     // wait for opportunity to eat
     while (philosophers[philosopherID] != EATING) {
-        printf("[+ %d +] Waiting...\n", philosopherID);
+        printf("[ %d ] Waiting...\n", philosopherID);
         fflush(stdout);
         pthread_cond_wait(&condPhilosophers[philosopherID], &mutexChopsticks);
     }
