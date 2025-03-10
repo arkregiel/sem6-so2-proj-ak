@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+// if you want more verbosity, uncomment following line:
+// #define VERBOSE
+
 // representation of philosopher's current state
 typedef enum {
     EATING,
@@ -128,9 +131,11 @@ void* philosopherRoutine(void *arg) {
         printf("[+ %d +] Thinking...\n", philosopherID);
         fflush(stdout);
         sleep(rand() % 2 + 1);
+        #ifdef VERBOSE
         printf("[ %d ] Trying to pickup chopsticks...\n", philosopherID);
-        eat(philosopherID);
         fflush(stdout);
+        #endif
+        eat(philosopherID);
     }
 
 }
@@ -138,30 +143,42 @@ void* philosopherRoutine(void *arg) {
 void eat(int philosopherID) {
 
     takeChopsticks(philosopherID);
+
     printf("[+ %d +] Eating...\n", philosopherID);
     fflush(stdout);
+
     sleep(rand() % 3 + 1);
 
+    #ifdef VERBOSE
     printf("[ %d ] Finished eating, releasing chopsticks...\n", philosopherID);
     fflush(stdout);
+    #endif
 
     releaseChopsticks(philosopherID);
 
+    #ifdef VERBOSE
     printf("[ %d ] Chopsticks released\n", philosopherID);
     fflush(stdout);
+    #endif
 }
 
 void checkPhilosopher(int philosopherID) {
+    #ifdef VERBOSE
     printf("[+] Testing state of philosopher %d\n", philosopherID);
     fflush(stdout);
+    #endif
+
     if (philosophers[philosopherID] == STARVING &&
         philosophers[(philosopherID + philosophersCount - 1) % philosophersCount] != EATING &&  // philosopher on the left
         philosophers[(philosopherID + 1) % philosophersCount] != EATING) {                      // philosopher on the right
         
         philosophers[philosopherID] = EATING;   // pickup chopsticks
         pthread_cond_signal(&condPhilosophers[philosopherID]);  // wake up philosopher's thread
+
+        #ifdef VERBOSE
         printf("[+] Philosopher %d can eat\n", philosopherID);
         fflush(stdout);
+        #endif
     }
 }
 
