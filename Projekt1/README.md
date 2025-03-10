@@ -8,16 +8,16 @@ Proces tworzy wątek dla każdego filozofa. Filozof może być w jednym z trzech
 
 ## Kompilacja i uruchamianie
 
-Program działa na systemach opartych o jądro Linux. Aby skompilować program, należy otworzyć w terminalu folder `src`, a następnie wykonać polecenie `make`. Zostanie utworzony plik `main`.
+Program działa na systemach opartych o jądro Linux. Aby skompilować program, należy otworzyć w terminalu katalog `Projekt1`, a następnie wykonać polecenie `make`. Zostanie utworzony plik `main` w katalogu `out`.
 
 Program uruchamiamy wraz z liczbą filozofów:
 
 ```bash
-$ ./main <philosophersCount>
+$ ./out/main <philosophersCount>
 ```
 
 Na przykład:
 
 ```bash
-$ ./main 5
+$ ./out/main 5
 ```

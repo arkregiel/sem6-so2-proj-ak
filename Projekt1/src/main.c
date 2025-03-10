@@ -3,39 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
-
-// if you want more verbosity, uncomment following line:
-// #define VERBOSE
-
-// representation of philosopher's current state
-typedef enum {
-    EATING,
-    THINKING,
-    STARVING
-} PhilosopherState;
-
-/* Funcion prototypes */
-
-// deleting dynamically allocated object from memory
-void delete(void *object);
-
-// routine for a single philosopher's thread
-void* philosopherRoutine(void *arg);
-
-// function reperesenting eating
-void eat(int philosopherID);
-
-/*
-checking philosopher's state. If philosopher is hungry and philosophers
-on his left and right aren't eating - philosopher starts eating
-*/
-void checkPhilosopher(int philosopherID);
-
-// pickup chopsticks
-void takeChopsticks(int philosopherID);
-
-// realease chopsticks
-void releaseChopsticks(int philosopherID);
+#include "philosophers.h"
 
 
 /* global variables */
@@ -63,7 +31,7 @@ int main(int argc, char *argv[]) {
     philosophersCount = atoi(argv[1]);
 
     if (philosophersCount <= 0) {
-        printf("[!!] Invalid philosophers count\n");
+        printf("[!!] Invalid philosophers count: %s\n", argv[1]);
         return EXIT_FAILURE;
     }
 
