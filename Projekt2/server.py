@@ -1,6 +1,8 @@
+import sys
 import socket
 import threading
 import netaddr
+import argparse
 
 
 class ChatClient:
@@ -13,6 +15,7 @@ class ChatClient:
         netaddr.IPAddress(addr)
         assert port > 0
         assert port < 2**16
+
         self.name = name
         self.sock = sock
         self.address = addr
@@ -108,5 +111,20 @@ class ChatServer:
 
 
 if __name__ == "__main__":
-    server = ChatServer("127.0.0.1", 1337)
+    parser = argparse.ArgumentParser(
+        description="Chat Server - project for Operating systems 2",
+        epilog=f"example: python3 {sys.argv[0]} -a 127.0.0.1 -p 1337",
+    )
+
+    parser.add_argument(
+        "-a", "--address", help="IPv4 address", metavar="ADDR", required=True
+    )
+
+    parser.add_argument(
+        "-p", "--port", help="Port number", metavar="PORT", required=True
+    )
+
+    args = parser.parse_args(sys.argv[1:])
+
+    server = ChatServer(args.address, int(args.port))
     server.start()
