@@ -1,5 +1,9 @@
 # Systemy operacyjne 2 - projekt 1
 
+Autor: [Artur Kręgiel](https://github.com/arkregiel)
+
+Prowadzący: [mgr inż. Damian Raczkowski](https://github.com/DocentSzachista)
+
 ## Opis projektu
 
 Zadanie polegało na rozwiązaniu problemu jedzących filozofów, czyli klasyczny problem synchronizacji.
