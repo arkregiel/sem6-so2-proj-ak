@@ -6,6 +6,8 @@ import argparse
 
 
 class ChatClient:
+    """Class that represents the chat client"""
+
     __name: str = ""
     __server_addr: str = ""
     __server_port: int = 0

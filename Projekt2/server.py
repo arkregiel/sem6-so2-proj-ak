@@ -6,6 +6,8 @@ import argparse
 
 
 class ChatClient:
+    """Class that contains info about client"""
+
     name: str = ""
     sock: socket.socket = None
     address: str = ""
@@ -29,6 +31,8 @@ class ChatClient:
 
 
 class ChatServer:
+    """Class responsible for running chat server and handling client connections and messaging"""
+
     __server_address: str = ""
     __server_port: int = 0
     __server_socket: socket.socket | None = None
