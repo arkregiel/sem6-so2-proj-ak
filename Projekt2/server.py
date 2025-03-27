@@ -35,6 +35,8 @@ class ChatServer:
     __connected_clients: list[ChatClient] = []
     __client_threads: list[threading.Thread] = []
     __stay_alive: bool = True
+    __mutex: threading.Lock = threading.Lock()
+    __history: list[str] = []
 
     def __init__(self, addr: str, port: int):
         netaddr.IPAddress(addr)
@@ -65,6 +67,10 @@ class ChatServer:
             return
 
     def broadcast(self, client: ChatClient, message: str) -> None:
+        self.__mutex.acquire()
+
+        self.__history.append(message)
+
         for c in self.__connected_clients:
             if c.name == client.name:
                 continue
@@ -72,6 +78,8 @@ class ChatServer:
                 c.sock.sendall(message.encode())
             except socket.error as e:
                 print(e)
+
+        self.__mutex.release()
 
     def start(self) -> None:
         self.__server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -95,6 +103,12 @@ class ChatServer:
                     self.__connected_clients.append(new_client)
 
                     self.broadcast(new_client, f"[Server] {name} joined chat")
+
+                    self.__mutex.acquire()
+
+                    new_client.sock.sendall("\n".join(self.__history).encode())
+
+                    self.__mutex.release()
 
                     t = threading.Thread(
                         target=self.__client_handler, args=(new_client,)
