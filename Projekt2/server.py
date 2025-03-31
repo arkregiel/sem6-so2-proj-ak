@@ -6,7 +6,9 @@ import argparse
 
 
 class ChatClient:
-    """Class that contains info about client"""
+    """
+    Class defined to represent client connections on the server-side
+    """
 
     name: str = ""
     sock: socket.socket = None
@@ -23,8 +25,8 @@ class ChatClient:
         """
         netaddr.IPAddress(addr)
         assert port > 0
-        assert port < 2**16
-        #ensure the port is within permissable range
+        assert port < 2 ** 16
+        # ensure the port is within permissable range
 
         self.name = name
         self.sock = sock
@@ -39,7 +41,9 @@ class ChatClient:
 
 
 class ChatServer:
-    """Class responsible for running chat server and handling client connections and messaging"""
+    """
+    Class responsible for running chat server and handling client connections and messaging
+    """
 
     __server_address: str = ""
     __server_port: int = 0
@@ -58,7 +62,7 @@ class ChatServer:
         """
         netaddr.IPAddress(addr)
         assert port > 0
-        assert port < 2**16
+        assert port < 2 ** 16
         self.__server_address = addr
         self.__server_port = port
 
@@ -90,15 +94,15 @@ class ChatServer:
         """
         Broadcasts message to all connected clients
         :param client: Client that sent message
-        :param message: Message to broadcast
+        :param message: message to broadcast
         """
         self.__mutex.acquire()
-        #critical section, as only one client can send message and append it to history at once
+        # critical section, as only one client can send message and append it to history at once
 
         self.__history.append(message)
 
         for c in self.__connected_clients:
-            #sending message to all clients except the sender
+            # sending message to all clients except the sender
             if c.name == client.name:
                 continue
             try:
@@ -107,7 +111,7 @@ class ChatServer:
                 print(e)
 
         self.__mutex.release()
-        #end of critical section
+        # end of critical section
 
     def start(self) -> None:
         """
@@ -124,13 +128,13 @@ class ChatServer:
         try:
             # while True:
             while self.__stay_alive:
-                #main loop listening for new connections
+                # main loop listening for new connections
                 try:
                     client_socket, remote_addr = self.__server_socket.accept()
                     print(
                         f"[+] New connection from [{remote_addr[0]}:{remote_addr[1]}]"
                     )
-
+                    # on succesful connection from a new client, read the name it sent and create new instance of ChatClient class and append it to the active connections list
                     name = client_socket.recv(16).decode().strip()
                     new_client = ChatClient(
                         name, client_socket, remote_addr[0], remote_addr[1]
@@ -146,7 +150,7 @@ class ChatServer:
                     self.__mutex.release()
 
                     t = threading.Thread(
-                        #spinning up a new thread on new connection and later appending list of connected clients
+                        # spinning up a new thread on new connection and later appending list of connected clients
                         target=self.__client_handler, args=(new_client,)
                     )
                     self.__client_threads.append(t)
@@ -156,7 +160,7 @@ class ChatServer:
                     print(e)
 
         except KeyboardInterrupt:
-            
+
             self.__stay_alive = False
             (t.join() for t in self.__client_threads)
 
@@ -168,11 +172,11 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-a", "--address", help="IPv4 address", metavar="ADDR", required=True
+        "-a", "--address", help="Server IPv4 address to listen on", metavar="ADDR", required=True
     )
 
     parser.add_argument(
-        "-p", "--port", help="Port number", metavar="PORT", required=True
+        "-p", "--port", help="Server port number to listen on", metavar="PORT", required=True
     )
 
     args = parser.parse_args(sys.argv[1:])

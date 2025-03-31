@@ -33,10 +33,16 @@ gdzie:
 Po uruchomieniu serwera, można uruchamiać klientów. Kod klienta znajduje się w pliku `client.py`
 
 ```
-python client.py -a 127.0.0.1 -p 1337 -n docent 
+python client.py -a 127.0.0.1 -p 1337 -n user 
 ```
 
 gdzie:
 - `-a` oznacza adres IPv4, na którym nasłuchuje serwer
 - `-p` oznacza numer portu, na którym nasłuchuje serwer
 - `-n` oznacza nazwę użytkownika (nick)
+
+## Działanie
+
+Po uruchomieniu serwera ten nasłuchuje na podanym interfejsie i porcie nadchodzących połączeń od klientów. W momencie nadejścia połączenia od strony klienta, na serwerze tworzona jest instancja obiektu reprezentującego klienta, oraz odpowiadający jednemu połączeniu wątek z działającą metodą __client_handler odpowiadającą za wysyłanie reszcie klientów wiadomości, oraz za dostęp do sekcji krytycznej, czyli zapisywanie do historii czatu.
+
+Działanie klienta ogranicza się do połączenia się do socketa serwera na bazie argumentów podanych przy uruchomieniu, a później enkodowanie i wysyłanie do serwera wiadomości wpisywanej w oknie czatu. Oprócz tego w programie klienta do odbierania wiadomości od innych użytkowników przekazywanych przez serwer używany jest oddzielny wątek.

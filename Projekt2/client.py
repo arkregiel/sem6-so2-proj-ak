@@ -6,7 +6,9 @@ import argparse
 
 
 class ChatClient:
-    """Class that represents the chat client"""
+    """
+    Class representing a client, on the client side
+    """
 
     __name: str = ""
     __server_addr: str = ""
@@ -24,7 +26,7 @@ class ChatClient:
         """
         netaddr.IPAddress(server_addr)
         assert server_port > 0
-        assert server_port < 2**16
+        assert server_port < 2 ** 16
 
         self.__name = name
         self.__server_addr = server_addr
@@ -73,7 +75,7 @@ class ChatClient:
 
             self.__socket.sendall(self.__name.encode())
 
-            #spinning up a new thread responsible for receiving data and displaying it
+            # spinning up a new thread responsible for receiving data and displaying it
             self.__receiving_thread = threading.Thread(target=self.receive_data)
             self.__receiving_thread.daemon = True
             self.__receiving_thread.start()
@@ -90,14 +92,14 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-a", "--address", help="IPv4 address", metavar="ADDR", required=True
+        "-a", "--address", help="Server IPv4 address to connect to", metavar="ADDR", required=True
     )
 
     parser.add_argument(
-        "-p", "--port", help="Port number", metavar="PORT", required=True
+        "-p", "--port", help="Server port number to connect to", metavar="PORT", required=True
     )
 
-    parser.add_argument("-n", "--name", help="Nickname", metavar="NAME", required=True)
+    parser.add_argument("-n", "--name", help="Nickname displayed by others", metavar="NAME", required=True)
 
     args = parser.parse_args(sys.argv[1:])
 
