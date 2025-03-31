@@ -7,3 +7,4 @@ Prowadzący: [mgr inż. Damian Raczkowski](https://github.com/DocentSzachista)
 ## Zadania projektowe
 
 - [Projekt 1](./Projekt1/)
+- [Projekt 2](./Projekt2/)
