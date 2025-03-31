@@ -16,6 +16,12 @@ class ChatClient:
     __receiving_thread: threading.Thread = None
 
     def __init__(self, name: str, server_addr: str, server_port: int):
+        """
+        constructor for ChatClient
+        :param name: name of the client
+        :param server_addr: server address
+        :param server_port: server port
+        """
         netaddr.IPAddress(server_addr)
         assert server_port > 0
         assert server_port < 2**16
@@ -25,6 +31,9 @@ class ChatClient:
         self.__server_port = server_port
 
     def receive_data(self) -> None:
+        """
+        method responsible for listening for new messages and displaying them
+        """
         try:
             while self.__stay_alive:
                 message = self.__socket.recv(1024).decode().strip()
@@ -37,6 +46,9 @@ class ChatClient:
             return
 
     def send_data(self) -> None:
+        """
+        method responsible for sending data to the server
+        """
         try:
             while True:
                 message = input().strip()
@@ -52,12 +64,16 @@ class ChatClient:
             self.__socket.close()
 
     def start(self) -> None:
+        """
+        method that starts the client and establishes connections to the server via socket
+        """
         try:
             self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__socket.connect((self.__server_addr, self.__server_port))
 
             self.__socket.sendall(self.__name.encode())
 
+            #spinning up a new thread responsible for receiving data and displaying it
             self.__receiving_thread = threading.Thread(target=self.receive_data)
             self.__receiving_thread.daemon = True
             self.__receiving_thread.start()

@@ -14,9 +14,17 @@ class ChatClient:
     port: int = 0
 
     def __init__(self, name: str, sock: socket.socket, addr: str, port: int):
+        """
+        Constructor for ChatClient
+        :param name: Name of client
+        :param sock: Socket to connect to
+        :param addr: Address to connect to
+        :param port: Port to connect to
+        """
         netaddr.IPAddress(addr)
         assert port > 0
         assert port < 2**16
+        #ensure the port is within permissable range
 
         self.name = name
         self.sock = sock
@@ -43,6 +51,11 @@ class ChatServer:
     __history: list[str] = []
 
     def __init__(self, addr: str, port: int):
+        """
+        Constructor for ChatServer
+        :param addr: Address to listen on
+        :param port: Port to listen on
+        """
         netaddr.IPAddress(addr)
         assert port > 0
         assert port < 2**16
@@ -50,6 +63,9 @@ class ChatServer:
         self.__server_port = port
 
     def __client_handler(self, client: ChatClient):
+        """
+        Method handling client sending messages and disconnecting clients
+        """
         try:
             while self.__stay_alive:
                 message = client.sock.recv(1024).decode().strip()
@@ -71,11 +87,18 @@ class ChatServer:
             return
 
     def broadcast(self, client: ChatClient, message: str) -> None:
+        """
+        Broadcasts message to all connected clients
+        :param client: Client that sent message
+        :param message: Message to broadcast
+        """
         self.__mutex.acquire()
+        #critical section, as only one client can send message and append it to history at once
 
         self.__history.append(message)
 
         for c in self.__connected_clients:
+            #sending message to all clients except the sender
             if c.name == client.name:
                 continue
             try:
@@ -84,8 +107,14 @@ class ChatServer:
                 print(e)
 
         self.__mutex.release()
+        #end of critical section
 
     def start(self) -> None:
+        """
+        main server method
+            starts the server on specified address and port, and starts accepting connections
+            also logs in console
+        """
         self.__server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.__server_socket.bind((self.__server_address, self.__server_port))
@@ -93,7 +122,9 @@ class ChatServer:
         print(f"[*] Server listening on [{self.__server_address}:{self.__server_port}]")
 
         try:
-            while True:
+            # while True:
+            while self.__stay_alive:
+                #main loop listening for new connections
                 try:
                     client_socket, remote_addr = self.__server_socket.accept()
                     print(
@@ -115,6 +146,7 @@ class ChatServer:
                     self.__mutex.release()
 
                     t = threading.Thread(
+                        #spinning up a new thread on new connection and later appending list of connected clients
                         target=self.__client_handler, args=(new_client,)
                     )
                     self.__client_threads.append(t)
@@ -124,6 +156,7 @@ class ChatServer:
                     print(e)
 
         except KeyboardInterrupt:
+            
             self.__stay_alive = False
             (t.join() for t in self.__client_threads)
 
